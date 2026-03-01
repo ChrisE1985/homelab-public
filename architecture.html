@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ellicave Homelab — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #161616;
+    --border: #222222;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #47d4ff;
+    --text: #e0e0e0;
+    --muted: #555;
+    --green: #4fffb0;
+    --red: #ff4d4d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 48px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding-bottom: 40px;
+    margin-bottom: 56px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .title span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .meta {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    line-height: 2;
+  }
+
+  .meta strong {
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-count {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2px;
+  }
+
+  /* Service card */
+  .card {
+    background: var(--surface);
+    padding: 20px 24px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background 0.15s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    animation: fadeUp 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .card:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+    z-index: 1;
+  }
+
+  .card:hover .card-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .card:hover .card-name {
+    color: #fff;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.10s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.20s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+  .card:nth-child(6) { animation-delay: 0.30s; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .card-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    transition: color 0.15s ease;
+  }
+
+  .card-arrow {
+    font-size: 16px;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: all 0.15s ease;
+    color: var(--accent);
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-url {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .card-tag {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .tag-local {
+    background: rgba(232, 255, 71, 0.08);
+    color: var(--accent);
+    border: 1px solid rgba(232, 255, 71, 0.15);
+  }
+
+  .tag-public {
+    background: rgba(71, 212, 255, 0.08);
+    color: var(--accent3);
+    border: 1px solid rgba(71, 212, 255, 0.15);
+  }
+
+  .tag-vpn {
+    background: rgba(79, 255, 176, 0.08);
+    color: var(--green);
+    border: 1px solid rgba(79, 255, 176, 0.15);
+  }
+
+  .tag-internal {
+    background: rgba(255, 107, 53, 0.08);
+    color: var(--accent2);
+    border: 1px solid rgba(255, 107, 53, 0.15);
+  }
+
+  /* Architecture diagram */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-bottom: 56px;
+    font-size: 12px;
+    line-height: 2;
+    letter-spacing: 1px;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .arch-label {
+    color: var(--muted);
+    width: 140px;
+    flex-shrink: 0;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .arch-items {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .arch-item {
+    padding: 4px 12px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .arch-arrow {
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="title">ELLICAVE<span>.</span>DEV</div>
+    <div class="title" style="font-size:28px; color: var(--muted); font-weight:400;">Homelab Architecture</div>
+    <div class="subtitle">Windows 11 · Docker Desktop · Quadro P620 · 16 Containers</div>
+  </div>
+  <div class="meta">
+    <div>OS <strong>Windows 11</strong></div>
+    <div>Runtime <strong>Docker Desktop</strong></div>
+    <div>VPN <strong>NordVPN / Gluetun</strong></div>
+    <div>Tunnel <strong>Cloudflare</strong></div>
+    <div>Remote <strong>Tailscale</strong></div>
+  </div>
+</div>
+
+<!-- Architecture Overview -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Traffic Flow</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-label">Internet</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item" style="border-color: var(--accent3); color: var(--accent3)">Cloudflare Tunnel</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item">home.ellicave.dev</div>
+        <div class="arch-item">jellyfin.ellicave.dev</div>
+        <div class="arch-item">photos.ellicave.dev</div>
+        <div class="arch-item">audiobooks.ellicave.dev</div>
+        <div class="arch-item">pw.ellicave.dev</div>
+        <div class="arch-item">cal.ellicave.dev</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Remote Access</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item" style="border-color: var(--green); color: var(--green)">Tailscale</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item">All services via 100.x.x.x</div>
+        <div class="arch-item">SSH</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label">Downloads</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item" style="border-color: var(--accent2); color: var(--accent2)">Gluetun / NordVPN</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-items">
+        <div class="arch-item">qBittorrent</div>
+        <div class="arch-item">Sonarr</div>
+        <div class="arch-item">Radarr</div>
+        <div class="arch-item">LazyLibrarian</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background: var(--accent)"></div>
+    Local only (localhost)
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: var(--accent3)"></div>
+    Public (ellicave.dev)
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: var(--green)"></div>
+    Via NordVPN
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: var(--accent2)"></div>
+    Internal only
+  </div>
+</div>
+
+<!-- Media -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Media</div>
+    <div class="section-line"></div>
+    <div class="section-count">03 services</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="https://jellyfin.ellicave.dev" target="_blank">
+      <div class="card-top"><div class="card-name">Jellyfin</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Movies, TV shows and music streaming server</div>
+      <div class="card-footer">
+        <div class="card-url">jellyfin.ellicave.dev</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+    <a class="card" href="https://photos.ellicave.dev" target="_blank">
+      <div class="card-top"><div class="card-name">Immich</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Self-hosted Google Photos replacement with ML face recognition</div>
+      <div class="card-footer">
+        <div class="card-url">photos.ellicave.dev</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+    <a class="card" href="https://audiobooks.ellicave.dev" target="_blank">
+      <div class="card-top"><div class="card-name">Audiobookshelf</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Audiobook and podcast server with mobile app support</div>
+      <div class="card-footer">
+        <div class="card-url">audiobooks.ellicave.dev</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Media Automation -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Media Automation</div>
+    <div class="section-line"></div>
+    <div class="section-count">06 services</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8989" target="_blank">
+      <div class="card-top"><div class="card-name">Sonarr</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">TV show download automation and library management</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:8989</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:7878" target="_blank">
+      <div class="card-top"><div class="card-name">Radarr</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Movie download automation and library management</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:7878</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:5299" target="_blank">
+      <div class="card-top"><div class="card-name">LazyLibrarian</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Audiobook and ebook download automation</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:5299</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:9117" target="_blank">
+      <div class="card-top"><div class="card-name">Jackett</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Torrent indexer proxy with FlareSolverr for Cloudflare bypass</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:9117</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:8080" target="_blank">
+      <div class="card-top"><div class="card-name">qBittorrent</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Torrent client routed through NordVPN via Gluetun</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:8080</div>
+        <div class="card-tag tag-vpn">VPN</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:9696" target="_blank">
+      <div class="card-top"><div class="card-name">Prowlarr</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Indexer manager (currently unused — Jackett preferred)</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:9696</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Infrastructure -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Infrastructure</div>
+    <div class="section-line"></div>
+    <div class="section-count">06 services</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="http://localhost:9000" target="_blank">
+      <div class="card-top"><div class="card-name">Portainer</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Docker container management and monitoring UI</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:9000</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:8090" target="_blank">
+      <div class="card-top"><div class="card-name">Traefik</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Reverse proxy and SSL management</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:8090</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:3000" target="_blank">
+      <div class="card-top"><div class="card-name">Grafana</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Metrics visualisation and monitoring dashboards</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:3000</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:9090" target="_blank">
+      <div class="card-top"><div class="card-name">Prometheus</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Metrics collection backend for Grafana</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:9090</div>
+        <div class="card-tag tag-internal">INTERNAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:8086" target="_blank">
+      <div class="card-top"><div class="card-name">InfluxDB</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Time-series database for speedtest data</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:8086</div>
+        <div class="card-tag tag-internal">INTERNAL</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:8765" target="_blank">
+      <div class="card-top"><div class="card-name">Speedtest Tracker</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Hourly internet speed tracking with historical charts</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:8765</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Monitoring -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Monitoring</div>
+    <div class="section-line"></div>
+    <div class="section-count">01 service</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="http://localhost:3002" target="_blank">
+      <div class="card-top"><div class="card-name">Uptime Kuma</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Service uptime monitoring with Telegram alerts</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:3002</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Personal -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Personal</div>
+    <div class="section-line"></div>
+    <div class="section-count">02 services</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="https://pw.ellicave.dev" target="_blank">
+      <div class="card-top"><div class="card-name">Vaultwarden</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Self-hosted Bitwarden password manager</div>
+      <div class="card-footer">
+        <div class="card-url">pw.ellicave.dev</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+    <a class="card" href="http://localhost:5232" target="_blank">
+      <div class="card-top"><div class="card-name">Baikal</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">CalDAV calendar and CardDAV contacts — synced to iPad and Android via cal.ellicave.dev</div>
+      <div class="card-footer">
+        <div class="card-url">localhost:5232</div>
+        <div class="card-tag tag-local">LOCAL</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- External Accounts -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">External Accounts</div>
+    <div class="section-line"></div>
+    <div class="section-count">02 accounts</div>
+  </div>
+  <div class="grid">
+    <a class="card" href="https://github.com/ChrisE1985" target="_blank">
+      <div class="card-top"><div class="card-name">GitHub</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">Source control and config backup — ChrisE1985</div>
+      <div class="card-footer">
+        <div class="card-url">github.com/ChrisE1985</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+    <a class="card" href="https://dash.cloudflare.com" target="_blank">
+      <div class="card-top"><div class="card-name">Cloudflare</div><div class="card-arrow">↗</div></div>
+      <div class="card-desc">DNS, tunnel management and domain for ellicave.dev — chris.ellison2@sky.com</div>
+      <div class="card-footer">
+        <div class="card-url">dash.cloudflare.com</div>
+        <div class="card-tag tag-public">PUBLIC</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <span>ELLICAVE.DEV HOMELAB</span>
+  <span>WINDOWS 11 · DOCKER DESKTOP · QUADRO P620</span>
+  <span>ALL DOWNLOADS VIA NORDVPN</span>
+</footer>
+
+</body>
+</html>
